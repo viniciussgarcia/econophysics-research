@@ -19,22 +19,32 @@ class FinancialDataForPeriod:
         self.covMatrix = self.returns.cov()
 
 
+class PortfolioOptimization:
+    def __init__(self, financialdata):
+        self.financialdata = financialdata
+        
+    def findBestPortolio():
+        return 0
+
+    def __shannonEntropy( portfolio ):
+        entropy = 0
+        for weight in portfolio:
+            entropy -= weight*np.log(weight)
+        return entropy
+
 assets = ['mglu3', 'prio3', 'bpac3', 'tots3', 'wege3']
 assets = [asset+'.sa' for asset in assets]
-delta = timedelta(days = 1200)
+delta = timedelta(days = 120)
 startDate = (datetime.today() - delta).isoformat()
+endDate = datetime.today().isoformat()
 
-testperiod = FinancialDataForPeriod(assets, startDate, datetime.today())
+testperiod = FinancialDataForPeriod(assets, startDate, endDate)
+print(testperiod.meanDailyReturns)
 
 
 
 
-def shannonEntropy( portfolio ):
-    entropy = 0
-    for weight in portfolio:
-        entropy -= weight*np.log(weight)
-    return entropy
-
+'''
 class MetropolisAlgorithm:
     def __init__(self, covmatrix):
 
@@ -50,7 +60,7 @@ class MetropolisAlgorithm:
             weight += 1
 
 
-
+'''
 
 
 
