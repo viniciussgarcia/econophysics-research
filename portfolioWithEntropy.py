@@ -6,9 +6,10 @@ from pandas_datareader import data as wb
 from datetime import datetime, timedelta
 #from pandas.plotting import lag_plot, autocorrelation_plot, bootstrap_plot
 
-
 class FinancialDataForPeriod:
     def __init__(self, assets, startDate, endDate ):
+        self.assets = assets
+        self.quantityOfAssets = len(assets)
         assetsData = {}
         for asset in assets:
         #calculando retornos logaritmicos direto na leitura
@@ -22,9 +23,16 @@ class FinancialDataForPeriod:
 class PortfolioOptimization:
     def __init__(self, financialdata):
         self.financialdata = financialdata
-        
+        self.portfolio = np.full(financialdata.quantityOfAssets, (1./financialdata.quantityOfAssets), dtype = np.double )
+    
     def findBestPortolio():
+
         return 0
+
+    def __restrictions(alpha0):
+        multiplier=100
+        costFunction = multiplier*( alpha0 - (self.portfolio @ self.financialdata.meanDailyReturns[0]) )
+        return costFunction
 
     def __shannonEntropy( portfolio ):
         entropy = 0
