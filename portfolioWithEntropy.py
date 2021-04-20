@@ -26,15 +26,21 @@ class PortfolioOptimization:
         self.portfolio = np.full(financialdata.quantityOfAssets, (1./financialdata.quantityOfAssets), dtype = np.double )
     
     def findBestPortolio():
+        alpha0=np.amin(self.financialdata.meanDailyReturns[0])
+        for i in range(10000):
+            self.__metropolis()
+            alpha0+=0.000001
+        return self.portfolio
+
 
         return 0
 
     def __restrictions(alpha0):
         multiplier=100
-        costFunction = multiplier*( alpha0 - (self.portfolio @ self.financialdata.meanDailyReturns[0]) )
-        return costFunction
+        restrictions = multiplier*( alpha0 - (self.portfolio @ self.financialdata.meanDailyReturns[0]) )
+        return restrictions
 
-    def __shannonEntropy( portfolio ):
+    def __shannonEntropy(portfolio):
         entropy = 0
         for weight in portfolio:
             entropy -= weight*np.log(weight)
@@ -48,6 +54,7 @@ endDate = datetime.today().isoformat()
 
 testperiod = FinancialDataForPeriod(assets, startDate, endDate)
 print(testperiod.meanDailyReturns)
+
 
 
 
