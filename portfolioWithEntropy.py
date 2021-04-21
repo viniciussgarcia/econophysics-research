@@ -27,13 +27,18 @@ class PortfolioOptimization:
     
     def findBestPortolio():
         alpha0=np.amin(self.financialdata.meanDailyReturns[0])
-        for i in range(10000):
+        N=1000
+        increment = (np.amax(self.financialdata.meanDailyReturns[0]) - np.amin(self.financialdata.meanDailyReturns[0]))/N
+        for i in range(N):
             self.__metropolis()
-            alpha0+=0.000001
+
+            alpha0+=increment
         return self.portfolio
 
 
-        return 0
+    def __metropolis():
+
+        return 0    
 
     def __restrictions(alpha0):
         multiplier=100
