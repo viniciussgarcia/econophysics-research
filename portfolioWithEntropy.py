@@ -30,24 +30,43 @@ class PortfolioOptimization:
         N=1000
         increment = (np.amax(self.financialdata.meanDailyReturns[0]) - np.amin(self.financialdata.meanDailyReturns[0]))/N
         for i in range(N):
-            self.__metropolis()
-
+            self.__metropolis(alpha0)
+            self.__saveRelevantData()
             alpha0+=increment
         return self.portfolio
 
 
-    def __metropolis():
-
+    def __metropolis(alpha0):
+        i = 0
+        while i < 1000:
+            proposedPortfolio = self.__proposedPortfolio()
+            costDelta = self.__costFunction(alpha0,proposedPortfolio) - self.__costFunction(alpha0,self.portfolio)
+            if costDelta < 0:
+                self.portfolio = proposedPortfolio
+                i+=1
+            else:
+                a = np.random.random()
+                if np.exp(costDelta) > a:
+                    self.portfolio = proposedPortfolio
+                    i+=1
         return 0    
 
-    def __restrictions(alpha0):
+    def __proposedPortfolio():
+        portfolio = self.portfolio
+        return portfolio
+
+    def __costFunction(alpha0, portfolio):
+        return ( ( portfolio @ self.financialdata.covMatrix @ portfolio ) - self.__shannonEntropy(portfolio) + \
+            self.__restrictions(alpha0, portfolio) )
+
+    def __restrictions(alpha0, portfolio):
         multiplier=100
-        restrictions = multiplier*( alpha0 - (self.portfolio @ self.financialdata.meanDailyReturns[0]) )
+        restrictions = multiplier*( alpha0 - (portfolio @ self.financialdata.meanDailyReturns[0]) )
         return restrictions
 
     def __shannonEntropy(portfolio):
         entropy = 0
-        for weight in portfolio:
+        for weight in self.portfolio:
             entropy -= weight*np.log(weight)
         return entropy
 
