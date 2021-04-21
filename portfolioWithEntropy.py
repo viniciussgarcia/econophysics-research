@@ -70,6 +70,9 @@ class PortfolioOptimization:
             entropy -= weight*np.log(weight)
         return entropy
 
+
+#--------------------------------------------------------#
+
 assets = ['mglu3', 'prio3', 'bpac3', 'tots3', 'wege3']
 assets = [asset+'.sa' for asset in assets]
 delta = timedelta(days = 120)
@@ -78,30 +81,6 @@ endDate = datetime.today().isoformat()
 
 testperiod = FinancialDataForPeriod(assets, startDate, endDate)
 print(testperiod.meanDailyReturns)
-
-
-
-
-
-'''
-class MetropolisAlgorithm:
-    def __init__(self, covmatrix):
-
-        self.covmatrix = covmatrix
-
-    def __costFunction( ):
-        return 0
-
-    def metropolis( weights ):
-        self.weights = weights
-        self.__costFunction( )
-        for weight in self.weights:
-            weight += 1
-
-
-'''
-
-
 
 
 
