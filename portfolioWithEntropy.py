@@ -27,7 +27,7 @@ class PortfolioOptimization:
     
     def findBestPortolio():
         alpha0=np.amin(self.financialdata.meanDailyReturns[0])
-        N=1000
+        N=100
         increment = (np.amax(self.financialdata.meanDailyReturns[0]) - np.amin(self.financialdata.meanDailyReturns[0]))/N
         for i in range(N):
             self.__metropolis(alpha0)
@@ -38,7 +38,9 @@ class PortfolioOptimization:
 
     def __metropolis(alpha0):
         i = 0
-        while i < 1000:
+        steps = 1e5
+        while i < steps:
+            kT = steps - i
             proposedPortfolio = self.__proposedPortfolio()
             costDelta = self.__costFunction(alpha0,proposedPortfolio) - self.__costFunction(alpha0,self.portfolio)
             if costDelta < 0:
@@ -46,13 +48,15 @@ class PortfolioOptimization:
                 i+=1
             else:
                 a = np.random.random()
-                if np.exp(costDelta) > a:
+                if np.exp(costDelta/kT) > a:
                     self.portfolio = proposedPortfolio
                     i+=1
-        return 0    
+        return
 
     def __proposedPortfolio():
-        portfolio = self.portfolio
+        #random normalized portfolio
+        portfolio = np.random.rand(self.financialdata.quantityOfAssets)
+        portfolio = portfolio / np.sum(portfolio)
         return portfolio
 
     def __costFunction(alpha0, portfolio):
@@ -66,10 +70,12 @@ class PortfolioOptimization:
 
     def __shannonEntropy(portfolio):
         entropy = 0
-        for weight in self.portfolio:
+        for weight in portfolio:
             entropy -= weight*np.log(weight)
         return entropy
 
+    def __saveRelevantData():
+        return
 
 #--------------------------------------------------------#
 
