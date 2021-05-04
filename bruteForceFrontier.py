@@ -32,6 +32,8 @@ class PortfolioGenerator:
         for i in range(N):
             self.__generateRandomPortfolio()
             self.__saveRelevantData()
+        self.output=pd.DataFrame(data=self.output)
+        self.output.sort_values(by=['return'],inplace=True)
         return self.output
 
     def __generateRandomPortfolio(self):
@@ -66,6 +68,12 @@ endDate = datetime.today().isoformat()
 testperiod = FinancialDataForPeriod(assets, startDate, endDate)
 generator = PortfolioGenerator(testperiod)
 data = generator.generatePortolios(10000)
+headerdata=''
+for column in data.columns:
+    headerdata += column+' '
+
+np.savetxt('montecarlodata.dat', data, header=headerdata)
+
 plt.xlabel('Risco')
 plt.ylabel('Retorno esperado')
 plt.scatter(data['cost'], data['return'], c=np.array(data['return'])/np.array(data['stddev']), alpha=0.5)
