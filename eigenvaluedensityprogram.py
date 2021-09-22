@@ -14,8 +14,8 @@ def getAssets():
 
 def getTimeSeriesIntraday(interval, ticker, timeSlice, apiKey='K565YCHGP2BN7YV1'):
     df = pd.read_csv('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY_EXTENDED&symbol='+ticker+'&interval='+interval+'&slice='+timeSlice+'&apikey='+apiKey+'&datatype=csv&outputsize=full')
-    print(ticker)
     df['date'], df['hour'] = df['time'].str.split(' ', 1).str
+    print(ticker)
     df.drop(columns = ['time', 'open', 'high', 'low'], inplace=True)
     df['return'] = np.log(1 + df['close'].pct_change() )
     return df
@@ -48,21 +48,13 @@ class Period:
                     time.sleep(1-(time.time()-start_time))
                 start_time = time.time()
             self.assetsData[asset] = getTimeSeriesIntraday(self.interval, asset, self.timeSlice)
-            
-
 
 class Day:
     def __init__(self, date, assetsData):
         self.date = date
-        self.filteredData = self.__filterData(assetsData)
-        self.corrMatrix = self.filteredData.corr()
-        #self.entropy = self.__calculateEntropy()
+        self.data = (self.__filterData(assetsData)).dropna()
+#        self.DOS = 
 
-    def __calculateEntropy(self):
-        distribution = PlemeljSokhotski.calculate(self.corrMatrix)
-        entropy = ShannonEntropy.calculate(distribution)
-        return entropy
-    
     def __filterData(self, assetsData):
         filteredData = pd.DataFrame()
         for asset in assetsData.keys():
@@ -75,6 +67,8 @@ class Day:
             filteredData[asset] = (returns - mean)/math.sqrt(meansquared-(mean**2))
         return filteredData
 
+
+
 class ShannonEntropy:
     @staticmethod
     def calculate(distribution):
@@ -83,28 +77,51 @@ class ShannonEntropy:
             entropy -= probability*np.log(probability)
         return entropy
 
-class PlemeljSokhotski:
+class Simulation:
     @staticmethod
-    def calculate(corrMatrix):
-        N = corrMatrix.shape[0]
-        distribution = { 'epsilon': np.arange(0, 10, 0.01), 'probability':[] }
-        
-        I = np.identity(N)
-        for e in distribution['epsilon']:
-            G = np.linalg.inv((e+0.001j)*I - corrMatrix)
-            ro = (-1/(N*np.pi))*np.imag(np.trace(G))
-            distribution['probability'].append(ro)
-        return distribution
+    def calculate(day):
+        print('Simulation running...')
+        sampleSize = 15
+        samplesQty = 300
+        assetsQty = len(day.data.columns)
+        eta = 1e-3
+        c = sampleSize/assetsQty
+        ea = 6 #((1+np.sqrt(c))**2)*1.2
+        eb = 0 #((1-np.sqrt(c))**2)*1.2
+        #esp = np.linspace(eb,ea,540)
+        esp = np.linspace(eb,ea,360)
 
+        DOS = []
+        for it in range(samplesQty):
+            R = day.data.sample(n=sampleSize, replace=True)
+            H = R.corr()
+            gsp = []
+            for e in esp:
+                G = np.linalg.inv((e+1j*eta)*np.eye(assetsQty)-H)
+                gsp.append(-(1.0/(assetsQty*np.pi))*np.trace(G.imag))
+            DOS.append(gsp)
+        DOS = np.average(DOS,axis=0)
+        return {'probability' : DOS, 'epsilon' : esp}
 
+def save_data(period):
+    #counter=0
+    for day in period.days:
+        df = pd.DataFrame( Simulation.calculate(day) )
+        df.to_csv(('DataTest_N_15_M_20/distribution'+day.date+'.csv'), header=None, index=None, sep=' ', mode='w')
+        #df.to_csv(('DataTest/distribution'+day.date+'.csv'), header=None, index=None, sep=' ', mode='w')
+        #distribution = Simulation.calculate(day)
+        #plt.plot(distribution['epsilon'],distribution['probability'],'.',color='gray')
+        #plt.show() 
+        #counter +=1
 
+def save_raw_data(period):
+    for day in period.days:
+        df = day.data
+        df.to_csv(('DATA/'+day.date+'.csv'), header=True, index=True, sep=' ', mode='w')
 
-testperiod = Period(getAssets())
-
-counter=0
-for day in testperiod.days:
-    if counter >=2 :
-        break
-    df = pd.DataFrame( PlemeljSokhotski.calculate(day.corrMatrix) )
-    df.to_csv(('distributiontest'+day.date+'.csv'), header=None, index=None, sep=' ', mode='w')
-    counter +=1
+for year in [1,2]:
+    for month in [1,2,3,4,5,6,7,8,9,10,11,12]:
+        timeSlice = 'year'+str(year)+'month'+str(month)
+        print(timeSlice)
+        period = Period(getAssets(), timeSlice=timeSlice)
+        save_raw_data(period)
